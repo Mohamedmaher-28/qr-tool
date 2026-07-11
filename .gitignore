@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+*.log
+*.tsbuildinfo
+run.err
+run.log
+# tsc -b emits these for the Vite config project; they are build artifacts
+frontend/vite.config.js
+frontend/vite.config.d.ts
+.DS_Store
