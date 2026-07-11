@@ -1,8 +1,12 @@
 import "dotenv/config";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import QRCode from "qrcode";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -40,12 +44,10 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
-// POST /generate
+// POST /generate (or /api/generate when served as a single host)
 // Body: { "url": "https://example.com" }
 // Response: { success: true, qrCode: "base64_or_svg_data", format: "png" | "svg" }
-app.post(
-  "/generate",
-  async (req: Request, res: Response): Promise<void> => {
+async function handleGenerate(req: Request, res: Response): Promise<void> {
     const { url } = (req.body ?? {}) as GenerateBody;
 
     if (typeof url !== "string" || url.trim().length === 0) {
@@ -104,8 +106,10 @@ app.post(
         error: "Failed to generate QR code. Please try again.",
       } satisfies GenerateResponse);
     }
-  }
-);
+  };
+
+app.post("/generate", handleGenerate);
+app.post("/api/generate", handleGenerate);
 
 // Central error handler
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -113,6 +117,20 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ success: false, error: "Internal server error." });
 });
 
+// Serve the built frontend (production / hosting mode).
+// In development the Vite dev server handles the UI and proxies /api to this server.
+const frontendDist = path.resolve(__dirname, "../../frontend/dist");
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get("*", (req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/health")) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
+
 app.listen(PORT, () => {
-  console.log(`QR Tool API listening on http://localhost:${PORT}`);
+  const mode = fs.existsSync(frontendDist) ? "hosting (SPA + API)" : "API only";
+  console.log(`QR Tool server (${mode}) listening on http://localhost:${PORT}`);
 });

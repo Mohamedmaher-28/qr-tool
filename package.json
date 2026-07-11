@@ -1,0 +1,19 @@
+{
+  "name": "qr-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QR Code Generator - monorepo with a React 19 frontend and an Express + TypeScript backend served as a single host.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

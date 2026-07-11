@@ -65,6 +65,39 @@ npm run build
 npm run preview
 ```
 
+### Hosting (single server)
+
+The project is set up as a monorepo so a single Node process can serve both the
+API and the built SPA. A root `package.json` (with npm workspaces) orchestrates
+the build and start:
+
+```bash
+# From the repo root
+npm install          # installs deps for backend + frontend (workspaces)
+npm run build        # builds backend -> backend/dist and frontend -> frontend/dist
+npm start            # runs the backend, which also serves frontend/dist
+```
+
+The backend serves the compiled frontend from `frontend/dist` and exposes the
+API at both `/generate` and `/api/generate` (the SPA calls `/api/*` in
+production). All other routes fall back to `index.html` for client-side
+routing.
+
+Set the listen port with the `PORT` environment variable (defaults to `4000`).
+
+**Deploying on a PaaS (e.g. Render, Railway, Fly.io, Heroku):**
+
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+- Env: `PORT` (provided by the platform)
+
+**Static-only hosting (Netlify / Vercel / GitHub Pages):**
+
+If you only want to host the frontend, run `npm --prefix frontend run build`
+and deploy `frontend/dist`. You will also need to deploy the backend
+separately (or use a serverless function for `POST /generate`) and point
+`VITE_API_BASE_URL` at it.
+
 ## API
 
 ### `POST /generate`
