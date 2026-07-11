@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { generateQrCode, type GenerateResponse } from "./api";
+import { generateQrClientSide, type QrResult } from "./lib/qrcodeClient";
 import { isValidUrl } from "./lib/validate";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -39,7 +40,17 @@ export default function App() {
     setCopied(false);
 
     try {
-      const res = await generateQrCode(url.trim());
+      // Prefer the backend API (spec-compliant), but fall back to generating
+      // the QR code in the browser so the app still works when hosted without
+      // a reachable backend.
+      let res: GenerateResponse | QrResult;
+      try {
+        res = await generateQrCode(url.trim());
+        if (!res.success || !res.png) throw new Error("backend failed");
+      } catch {
+        res = await generateQrClientSide(url.trim());
+      }
+
       if (res.success && res.png) {
         setResult(res);
         setStatus("success");

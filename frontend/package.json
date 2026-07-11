@@ -14,10 +14,12 @@
     "firebase": "^10.12.2",
     "framer-motion": "^11.3.2",
     "lucide-react": "^0.408.0",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.1",
